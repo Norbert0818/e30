@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../lib/auth";
+import LoginButton from "../components/LoginButton"; // <--- BEIMPORTÁLJUK AZ ÚJ GOMBOT
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -24,7 +25,7 @@ export default async function Home() {
         </div>
         
         <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-slate-800 mb-6 tracking-tight leading-tight">
-          Votul <span className="text-blue-600">publicului</span>
+          Votează-ți <span className="text-blue-600">Favoritul</span>
         </h1>
         
         {session ? (
@@ -43,8 +44,12 @@ export default async function Home() {
           <div className="mt-8 md:mt-12 bg-white p-6 md:p-8 rounded-3xl shadow-lg border border-slate-100 w-full">
             <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-4">Bun venit pe platforma de votare! 👋</h2>
             <p className="text-base md:text-lg text-slate-600">
-              Pentru a putea vota, te rugăm să te <strong>autentifici</strong> folosind contul Google din meniul aflat în colțul din dreapta sus.
+              Pentru a putea vota, te rugăm să te <strong>autentifici</strong> folosind contul tău Google făcând click pe butonul de mai jos.
             </p>
+            
+            {/* ITT JELENIK MEG AZ ÚJ GOMB */}
+            <LoginButton />
+            
           </div>
         )}
 
