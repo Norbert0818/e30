@@ -30,7 +30,7 @@ export default function Navbar() {
                 height={40} 
                 className="rounded-full border border-slate-700"
               />
-              <span className="text-2xl font-black text-white shrink-0">Cojocna 2026</span>
+              <span className="text-2xl font-black text-white shrink-0">BMW E30 Cluj & Brothers</span>
             </Link>
 
             {/* Asztali menü - MINDENKINEK LÁTHATÓ LINKEK */}
