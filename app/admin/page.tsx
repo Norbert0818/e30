@@ -91,14 +91,14 @@ export default function AdminPage() {
             {isVotingOpen ? "🟢 VOTARE DESCHISĂ" : "🔴 VOTARE ÎNCHISĂ"}
           </button>
 
-          <button 
+          {/* <button 
             onClick={() => handleAction("TOGGLE_RESULTS", { areResultsPublic: !areResultsPublic })}
             className={`px-6 py-3 rounded-xl font-black text-white shadow-lg transition transform hover:scale-105 flex-1 ${
               areResultsPublic ? "bg-purple-500 hover:bg-purple-600" : "bg-slate-500 hover:bg-slate-600"
             }`}
           >
             {areResultsPublic ? "👁️ REZULTATE PUBLICE" : "🙈 REZULTATE ASCUNSE"}
-          </button>
+          </button> */}
         </div>
       </div>
 

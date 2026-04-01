@@ -30,17 +30,19 @@ export default function Navbar() {
                 height={40} 
                 className="rounded-full border border-slate-700"
               />
-              <span className="text-2xl font-black text-white shrink-0">BMW E30 Cluj & Brothers</span>
+              <span className="text-lg md:text-xl font-black text-white shrink-0">BMW E30 Cluj & Brothers</span>
             </Link>
 
-            {/* Asztali menü - MINDENKINEK LÁTHATÓ LINKEK */}
+            {/* Asztali menü */}
             <div className="hidden md:flex items-center gap-4 lg:gap-6 font-bold text-slate-300">
               <Link href="/vote" className="hover:text-white transition">🗳️ Votare</Link>
-              <Link href="/results" className="hover:text-white transition">🏆 Rezultate</Link>
               
               {/* CSAK ADMINOKNAK LÁTHATÓ LINKEK */}
               {isAdminOrSuperadmin && (
-                <Link href="/admin" className="hover:text-amber-400 text-amber-500 transition">🛠️ Admin</Link>
+                <>
+                  <Link href="/results" className="hover:text-white transition">🏆 Rezultate</Link>
+                  <Link href="/admin" className="hover:text-amber-400 text-amber-500 transition">🛠️ Admin</Link>
+                </>
               )}
               
               {role === "superadmin" && (
@@ -94,9 +96,8 @@ export default function Navbar() {
         <div className="md:hidden bg-slate-800 border-t border-slate-700">
           <div className="px-4 pt-2 pb-6 space-y-2 flex flex-col">
             
-            {/* Publikus linkek, amik mindig látszanak mobilon is */}
+            {/* Publikus linkek */}
             <Link href="/vote" onClick={closeMenu} className="block px-4 py-4 text-lg font-bold text-slate-200 bg-slate-700/50 rounded-xl hover:bg-slate-700 mt-2">🗳️ Votare</Link>
-            <Link href="/results" onClick={closeMenu} className="block px-4 py-4 text-lg font-bold text-slate-200 bg-slate-700/50 rounded-xl hover:bg-slate-700">🏆 Rezultate</Link>
 
             {!session ? (
               <button onClick={() => { closeMenu(); signIn("google"); }} className="w-full bg-blue-600 text-white text-center px-4 py-4 rounded-xl font-bold mt-4">
@@ -112,8 +113,12 @@ export default function Navbar() {
                   </div>
                 </div>
                 
+                {/* CSAK ADMINOKNAK LÁTHATÓ LINKEK (MOBIL) */}
                 {isAdminOrSuperadmin && (
-                  <Link href="/admin" onClick={closeMenu} className="block px-4 py-4 text-lg font-bold text-amber-400 bg-slate-700/50 rounded-xl hover:bg-slate-700">🛠️ Panel Admin</Link>
+                  <>
+                    <Link href="/results" onClick={closeMenu} className="block px-4 py-4 text-lg font-bold text-slate-200 bg-slate-700/50 rounded-xl hover:bg-slate-700">🏆 Rezultate</Link>
+                    <Link href="/admin" onClick={closeMenu} className="block px-4 py-4 text-lg font-bold text-amber-400 bg-slate-700/50 rounded-xl hover:bg-slate-700">🛠️ Panel Admin</Link>
+                  </>
                 )}
                 
                 {role === "superadmin" && (
