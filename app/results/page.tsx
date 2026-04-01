@@ -1,23 +1,9 @@
-// app/results/page.tsx
-import { getServerSession } from "next-auth";
-import { authOptions } from "../../lib/auth";
-import { redirect } from "next/navigation";
 import { prisma } from "../../lib/prisma";
 
 export const dynamic = "force-dynamic";
 
 export default async function ResultsPage() {
-  const session = await getServerSession(authOptions);
-  const userRole = (session?.user as any)?.role;
-  const isAdminOrSuperadmin = userRole === "admin" || userRole === "superadmin";
-
-  const setting = await prisma.setting.findFirst();
-  const areResultsPublic = setting?.areResultsPublic ?? false;
-
-  if (!session || (!isAdminOrSuperadmin && !areResultsPublic)) {
-    redirect("/"); 
-  }
-
+  // Lekérjük az összes aktív kategóriát a hozzájuk tartozó szavazatokkal együtt
   const categories = await prisma.category.findMany({
     where: { isActive: true },
     include: { votes: true }
@@ -26,15 +12,17 @@ export default async function ResultsPage() {
   const rankings = categories.map((category) => {
     const voteCounts: Record<string, number> = {};
 
+    // Megszámoljuk a szavazatokat kategóriánként
     category.votes.forEach((vote) => {
       const answer = vote.answer.trim().toLowerCase();
-      const key = answer;
-      if (!voteCounts[key]) voteCounts[key] = 0;
-      voteCounts[key]++;
+      if (!voteCounts[answer]) voteCounts[answer] = 0;
+      voteCounts[answer]++;
     });
 
+    // Sorba rendezzük és vesszük az első 5 helyezettet
     const sortedAnswers = Object.entries(voteCounts)
       .map(([key, count]) => {
+        // Megkeressük az eredeti formátumú választ (nem csupa kisbetűs)
         const originalVote = category.votes.find(v => v.answer.trim().toLowerCase() === key);
         return { answer: originalVote?.answer.trim() || key, count };
       })
@@ -54,7 +42,9 @@ export default async function ResultsPage() {
       <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-2 text-center">
         🏆 Rezultate (TOP 5)
       </h1>
-      <p className="text-center text-slate-500 mb-12 text-lg">Vezi care sunt cele mai populare răspunsuri!</p>
+      <p className="text-center text-slate-500 mb-12 text-lg">
+        Clasamentul actualizat în timp real!
+      </p>
 
       <div className="space-y-8">
         {rankings.map((category) => (
@@ -62,28 +52,26 @@ export default async function ResultsPage() {
             <div className="bg-slate-800 text-white p-6 flex justify-between items-center">
               <h2 className="text-2xl font-bold">{category.name}</h2>
               <span className="bg-slate-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                {category.totalVotes} voturi
+                {category.totalVotes} voturi în total
               </span>
             </div>
 
             <div className="p-6">
               {category.topAnswers.length === 0 ? (
-                <p className="text-slate-500 italic text-center py-4">Nu s-au înregistrat încă voturi pentru această întrebare.</p>
+                <p className="text-slate-500 italic text-center py-4">Nu s-au înregistrat încă voturi.</p>
               ) : (
                 <div className="space-y-3">
                   {category.topAnswers.map((item, index) => {
                     let medal = <span className="text-slate-400 font-bold w-8 text-center">{index + 1}.</span>;
-                    if (index === 0) medal = <span className="text-3xl" title="Locul 1">🥇</span>;
-                    if (index === 1) medal = <span className="text-3xl" title="Locul 2">🥈</span>;
-                    if (index === 2) medal = <span className="text-3xl" title="Locul 3">🥉</span>;
-                    if (index === 3) medal = <span className="text-slate-400 font-bold w-8 text-center">4.</span>;
-                    if (index === 4) medal = <span className="text-slate-400 font-bold w-8 text-center">5.</span>;
+                    if (index === 0) medal = <span className="text-3xl">🥇</span>;
+                    if (index === 1) medal = <span className="text-2xl">🥈</span>;
+                    if (index === 2) medal = <span className="text-xl">🥉</span>;
 
                     return (
                       <div key={index} className={`flex items-center justify-between p-4 rounded-2xl transition-all ${index === 0 ? 'bg-amber-50 border-2 border-amber-200 shadow-sm' : 'bg-slate-50 border border-slate-100'}`}>
                         <div className="flex items-center gap-4 min-w-0">
                           <div className="w-10 text-center flex justify-center shrink-0">{medal}</div>
-                          <div className="font-bold text-slate-800 text-lg md:text-xl break-words min-w-0 uppercase tracking-widest">
+                          <div className="font-bold text-slate-800 text-lg md:text-xl break-words uppercase tracking-widest">
                             {item.answer}
                           </div>
                         </div>

@@ -1,24 +1,27 @@
-// app/vote/page.tsx
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../lib/auth";
 import { prisma } from "../../lib/prisma";
-import { redirect } from "next/navigation";
 import VoteClient from "./VoteClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function VotePage() {
   const session = await getServerSession(authOptions);
-  if (!session) redirect("/"); 
+  
+  // Ha be van jelentkezve, használjuk az ID-ját, ha nincs, akkor "guest"
+  // Megjegyzés: Az API oldalon is engedélyezni kell majd a guest szavazást!
+  const userId = (session?.user as any)?.id || "guest";
 
-  const userId = (session.user as any).id;
-  const categories = await prisma.category.findMany({ where: { isActive: true }, orderBy: { createdAt: "asc" } });
-  const userVotes = await prisma.vote.findMany({ where: { userId: userId } });
+  const categories = await prisma.category.findMany({ 
+    where: { isActive: true }, 
+    orderBy: { createdAt: "asc" } 
+  });
 
-  // LEKÉRJÜK A KAPCSOLÓT
+  // Csak akkor kérjük le az adatbázisból a szavazatokat, ha be van jelentkezve
+  const userVotes = session ? await prisma.vote.findMany({ where: { userId: userId } }) : [];
+
   const setting = await prisma.setting.findFirst();
   const isVotingOpen = setting ? setting.isVotingOpen : true;
 
-  // ÁTADJUK AZ isVotingOpen VÁLTOZÓT IS
   return <VoteClient categories={categories} userVotes={userVotes} isVotingOpen={isVotingOpen} />;
 }

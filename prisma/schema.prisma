@@ -9,7 +9,7 @@ datasource db {
 }
 
 // ==========================================
-// 1. NEXTAUTH KÖTELEZŐ MODELLEK (Google Login)
+// 1. NEXTAUTH KÖTELEZŐ MODELLEK (Adminoknak)
 // ==========================================
 
 model Account {
@@ -48,7 +48,9 @@ model User {
   role          String    @default("user") // "user", "admin", "superadmin"
   accounts      Account[]
   sessions      Session[]
-  votes         Vote[]    // Egy felhasználónak több szavazata is lehet
+  
+  // ITT TÖRÖLTÜK A KAPCSOLATOT A SZAVAZATOKKAL
+  // votes         Vote[]    
 }
 
 model VerificationToken {
@@ -66,34 +68,34 @@ model VerificationToken {
 // Kategóriák / Kérdések
 model Category {
   id        String   @id @default(cuid())
-  name      String   // Maga a kérdés (pl. "Ki a legviccesebb?")
+  name      String   
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   
-  votes     Vote[]   // A kategóriához tartozó összes szavazat
+  votes     Vote[]   
 }
 
-// Szavazatok (Szabadszöveges válaszok)
+// Szavazatok
 model Vote {
   id         String   @id @default(cuid())
-  answer     String   // Amit a felhasználó bepötyög! (pl. "Kovács Béla")
+  answer     String   
   createdAt  DateTime @default(now())
 
-  // Kapcsolat a felhasználóval (Ki szavazott?)
+  // ITT A MEGOLDÁS: A userId most már csak egy sima szöveg (String).
+  // Nincs @relation a User táblához! Így bemehet a "guest_..." azonosító is.
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Kapcsolat a kategóriával (Melyik kérdésre?)
+  // A kategória kapcsolat marad, mert annak léteznie kell!
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
-  // BIZTONSÁG: Egy felhasználó egy kategóriában csak EGYSZER szavazhat!
+  // BIZTONSÁG: Egy azonosító (IP vagy Admin) egy kategóriában csak EGYSZER szavazhat!
   @@unique([userId, categoryId])
 }
 
-// Globális beállítások (Főkapcsoló az Adminnak)
+// Globális beállítások
 model Setting {
-  id           String  @id @default(cuid())
-  isVotingOpen Boolean @default(true)
+  id               String  @id @default(cuid())
+  isVotingOpen     Boolean @default(true)
   areResultsPublic Boolean @default(false)
 }
