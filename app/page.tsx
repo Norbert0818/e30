@@ -6,11 +6,48 @@ import Image from "next/image";
 
 export default function Home() {
   const [hasVoted, setHasVoted] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const voted = localStorage.getItem("userVoted");
-    if (voted) setHasVoted(true);
+    // Létrehozunk egy függvényt, ami ellenőrzi a szervert
+    const verifyVoteStatus = async () => {
+      try {
+        const res = await fetch("/api/vote");
+        if (res.ok) {
+          const data = await res.json();
+          
+          if (data.hasVoted) {
+            // A szerveren megvan a szavazat
+            setHasVoted(true);
+            localStorage.setItem("userVoted", "true");
+          } else {
+            // AZ ADMIN RESETELT! (Nincs szavazat a szerveren)
+            // Letöröljük a helyi adatokat is, hogy újra szavazhasson
+            setHasVoted(false);
+            localStorage.removeItem("userVoted");
+            localStorage.removeItem("my_votes"); // Töröljük a megjegyzett rendszámokat is
+          }
+        }
+      } catch (error) {
+        // Ha valamiért nem elérhető a szerver, fallback a local storage-re
+        const voted = localStorage.getItem("userVoted");
+        if (voted) setHasVoted(true);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifyVoteStatus();
   }, []);
+
+  // Amíg a szerver válaszára várunk, ne mutassuk egyik gombot se (villogás elkerülése)
+  if (isLoading) {
+    return (
+      <main className="min-h-[calc(100vh-80px)] bg-slate-50 flex items-center justify-center">
+        <div className="text-xl font-bold text-slate-500 animate-pulse">Încărcare...</div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-[calc(100vh-80px)] bg-slate-50 flex flex-col items-center justify-center p-4">
@@ -36,8 +73,11 @@ export default function Home() {
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-green-600 mb-4">Mulțumim! ✅</h2>
               <p className="text-lg text-slate-600 mb-6">Votul tău a fost înregistrat.</p>
-              <Link href="/results" className="inline-block bg-slate-800 text-white font-bold px-8 py-4 rounded-xl hover:bg-slate-900 transition-all">
-                Vezi Rezultatele
+              <Link 
+                href="/vote" 
+                className="inline-block w-full sm:w-auto bg-blue-600 text-white font-black text-lg md:text-2xl px-6 md:px-12 py-4 md:py-6 rounded-2xl shadow-xl hover:bg-blue-700 hover:shadow-2xl transition-all transform hover:-translate-y-1"
+              >
+                🗳️ Mergi la Buletinul de Vot
               </Link>
             </div>
           ) : (

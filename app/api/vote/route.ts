@@ -15,6 +15,31 @@ function getUserId(session: any, reqHeaders: Headers) {
   return `guest_${ip.replace(/[:.]/g, "_")}`;
 }
 
+// ==========================================
+// ÚJ: SZAVAZAT ELLENŐRZÉSE (Főoldalhoz)
+// ==========================================
+export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+  const reqHeaders = await headers();
+  const userId = getUserId(session, reqHeaders);
+
+  try {
+    // Megnézzük, van-e a jelenlegi IP-nek/Usernek szavazata
+    const votesCount = await prisma.vote.count({
+      where: { userId }
+    });
+
+    // Ha több mint 0 szavazata van, akkor true, különben false
+    return NextResponse.json({ hasVoted: votesCount > 0 });
+  } catch (error) {
+    console.error("VOTE_CHECK_ERROR:", error);
+    return NextResponse.json({ error: "Eroare la verificare" }, { status: 500 });
+  }
+}
+
+// ==========================================
+// SZAVAZAT LEADÁSA
+// ==========================================
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
   const reqHeaders = await headers();
@@ -60,10 +85,13 @@ export async function POST(req: Request) {
   }
 }
 
+// ==========================================
+// SZAVAZAT TÖRLÉSE (Csak Admin)
+// ==========================================
 export async function DELETE(req: Request) {
   const session = await getServerSession(authOptions);
   
-  // A törlést Szigorítjuk: Csak admin törölhessen, vagy ha úgy döntöttél, 
+  // A törlést Szigorítjuk: Csak admin törölhessen, sau ha úgy döntöttél, 
   // hogy a felhasználó mégis módosíthat, akkor vedd ki a role ellenőrzést.
   const userRole = (session?.user as any)?.role;
   const isAdmin = userRole === "admin" || userRole === "superadmin";

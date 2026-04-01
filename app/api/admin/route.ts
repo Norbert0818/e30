@@ -1,4 +1,3 @@
-// app/api/admin/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../../lib/auth";
@@ -15,14 +14,13 @@ export async function GET() {
   
   let setting = await prisma.setting.findFirst();
   if (!setting) {
-    setting = await prisma.setting.create({ data: { isVotingOpen: true, areResultsPublic: false } });
+    // Kiszedtük a felesleges areResultsPublic változót innen is
+    setting = await prisma.setting.create({ data: { isVotingOpen: true } });
   }
   
-  // Visszaadjuk mindkét kapcsoló állapotát
   return NextResponse.json({ 
     categories, 
-    isVotingOpen: setting.isVotingOpen,
-    areResultsPublic: setting.areResultsPublic 
+    isVotingOpen: setting.isVotingOpen
   });
 }
 
@@ -48,6 +46,9 @@ export async function POST(req: Request) {
 
     if (action === "TOGGLE_VOTING") {
       let setting = await prisma.setting.findFirst();
+      if (!setting) {
+         setting = await prisma.setting.create({ data: { isVotingOpen: true } });
+      }
       setting = await prisma.setting.update({
         where: { id: setting!.id },
         data: { isVotingOpen: payload.isVotingOpen }
@@ -55,14 +56,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ isVotingOpen: setting.isVotingOpen });
     }
 
-    // ÚJ: EREDMÉNYEK PUBLIKÁLÁSA KAPCSOLÓ
-    if (action === "TOGGLE_RESULTS") {
-      let setting = await prisma.setting.findFirst();
-      setting = await prisma.setting.update({
-        where: { id: setting!.id },
-        data: { areResultsPublic: payload.areResultsPublic }
-      });
-      return NextResponse.json({ areResultsPublic: setting.areResultsPublic });
+    // ÚJ: SZAVAZATOK TÖRLÉSE (RESET_VOTES)
+    if (action === "RESET_VOTES") {
+      // Letöröl mindent a Vote táblából
+      await prisma.vote.deleteMany({});
+      return NextResponse.json({ success: true, message: "Voturile au fost resetate." });
     }
 
     return NextResponse.json({ error: "Acțiune necunoscută" }, { status: 400 });

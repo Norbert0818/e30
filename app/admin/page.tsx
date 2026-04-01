@@ -1,4 +1,3 @@
-// app/admin/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,7 +12,6 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<any[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isVotingOpen, setIsVotingOpen] = useState(true);
-  const [areResultsPublic, setAreResultsPublic] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -32,14 +30,19 @@ export default function AdminPage() {
       const data = await res.json();
       setCategories(data.categories);
       setIsVotingOpen(data.isVotingOpen);
-      setAreResultsPublic(data.areResultsPublic);
     }
     setIsLoading(false);
   };
 
-  const handleAction = async (action: string, payload: any) => {
+  const handleAction = async (action: string, payload: any = {}) => {
     if (action === "DELETE_CATEGORY" && !confirm("Sigur dorești să ștergi această întrebare? Toate voturile aferente se vor pierde!")) return;
     if (action === "ADD_CATEGORY" && !payload.name.trim()) return;
+
+    // Resetálás megerősítése
+    if (action === "RESET_VOTES") {
+      const isSure = confirm("🚨 ATENȚIE MAXIMĂ 🚨\n\nEști absolut sigur că vrei să ȘTERGI TOATE VOTURILE?\nAceastă acțiune este ireversibilă!");
+      if (!isSure) return;
+    }
 
     const res = await fetch("/api/admin", {
       method: "POST",
@@ -53,10 +56,8 @@ export default function AdminPage() {
         setIsVotingOpen(data.isVotingOpen);
         toast.success(data.isVotingOpen ? "Votarea este DESCHISĂ!" : "Votarea este ÎNCHISĂ!");
         router.refresh();
-      } else if (action === "TOGGLE_RESULTS") {
-        const data = await res.json();
-        setAreResultsPublic(data.areResultsPublic);
-        toast.success(data.areResultsPublic ? "Rezultatele sunt PUBLICE!" : "Rezultatele sunt ASCUNSE!");
+      } else if (action === "RESET_VOTES") {
+        toast.success("Toate voturile au fost șterse cu succes!");
         router.refresh();
       } else {
         fetchData();
@@ -82,6 +83,7 @@ export default function AdminPage() {
         <h1 className="text-3xl md:text-4xl font-black text-slate-800">🛠️ Panel Admin</h1>
         
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          {/* Szavazás kapcsoló */}
           <button 
             onClick={() => handleAction("TOGGLE_VOTING", { isVotingOpen: !isVotingOpen })}
             className={`px-6 py-3 rounded-xl font-black text-white shadow-lg transition transform hover:scale-105 flex-1 ${
@@ -91,14 +93,13 @@ export default function AdminPage() {
             {isVotingOpen ? "🟢 VOTARE DESCHISĂ" : "🔴 VOTARE ÎNCHISĂ"}
           </button>
 
-          {/* <button 
-            onClick={() => handleAction("TOGGLE_RESULTS", { areResultsPublic: !areResultsPublic })}
-            className={`px-6 py-3 rounded-xl font-black text-white shadow-lg transition transform hover:scale-105 flex-1 ${
-              areResultsPublic ? "bg-purple-500 hover:bg-purple-600" : "bg-slate-500 hover:bg-slate-600"
-            }`}
+          {/* ÚJ: Nullázás gomb a Results helyett */}
+          <button 
+            onClick={() => handleAction("RESET_VOTES")}
+            className="px-6 py-3 rounded-xl font-black text-white shadow-lg transition transform hover:scale-105 flex-1 bg-red-600 hover:bg-red-700"
           >
-            {areResultsPublic ? "👁️ REZULTATE PUBLICE" : "🙈 REZULTATE ASCUNSE"}
-          </button> */}
+            🗑️ RESETEAZĂ VOTURILE
+          </button>
         </div>
       </div>
 
