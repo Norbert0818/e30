@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import Navbar from "@/components/Navbar";
-import { prisma } from "@/lib/prisma";
+// A prisma importot is kivehetjük, mert már nem használjuk itt
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -14,21 +14,21 @@ export const metadata: Metadata = {
   }
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   
-  const setting = await prisma.setting.findFirst();
-  const areResultsPublic = setting?.areResultsPublic ?? false;
+  // ITT TÖRÖLTÜK A PRISMA LEKÉRÉST, MERT MÁR NEM KELL!
 
   return (
     <html lang="hu">
       {/* ITT A MEGOLDÁS: overflow-x-hidden és w-full */}
       <body className={`${inter.className} overflow-x-hidden w-full bg-slate-50`}>
         <Providers>
-          <Navbar areResultsPublic={areResultsPublic} /> 
+          {/* ITT PEDIG SIMÁN CSAK <Navbar /> PROP NÉLKÜL! */}
+          <Navbar /> 
           {children}
         </Providers>
       </body>
