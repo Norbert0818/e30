@@ -2,6 +2,7 @@ import { prisma } from "../../lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { NextResponse } from "next/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
@@ -9,9 +10,10 @@ export default async function ResultsPage() {
   const session = await getServerSession(authOptions);
 
   const userRole = (session?.user as any)?.role;
+
     if (!session || (userRole !== "admin" && userRole !== "superadmin")) {
-      return NextResponse.json({ error: "Acces neautorizat" }, { status: 403 });
-    }
+    redirect("/"); 
+  }
   
   // Lekérjük az összes aktív kategóriát a hozzájuk tartozó szavazatokkal együtt
   const categories = await prisma.category.findMany({
